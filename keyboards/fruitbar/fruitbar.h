@@ -36,3 +36,12 @@ enum layers {
               { K300, K301, K302, K303, K304, K305, K306, K307, K308, K309, K310 }, \
               { K400, K401, K402, K403, K404, K405, K406, K407, K408, K409, K410 }  \
 }
+
+enum keycodes {
+  _KC_ROTARY = SAFE_RANGE
+};
+
+typedef enum {
+  _S_VOLUME,
+  _S_BRIGHTNESS
+} _S_ROTARY;

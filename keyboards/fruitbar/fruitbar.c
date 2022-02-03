@@ -16,18 +16,34 @@
 
 #include "fruitbar.h"
 
-bool encoder_update_kb(uint8_t index, bool clockwise) {
-    if (!encoder_update_kb(index, clockwise)) { return false; }
-	if(index == 0) {
-		if (clockwise) {
-			tap_code(KC_VOLD);
-		} else {
-			tap_code(KC_VOLU);
-			}
-		}
-	return true;
+_S_ROTARY rotary_state = _S_VOLUME;
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  switch (keycode) {
+    case _KC_ROTARY:
+      if (record->event.pressed) {
+        rotary_state = rotary_state == _S_VOLUME ? _S_BRIGHTNESS : _S_VOLUME;
+      }
+      return false;
+    default:
+      return true; // Process all other keycodes normally
+  }
 }
 
+bool encoder_update_user(uint8_t index, bool clockwise) {
+  clockwise = !clockwise; // It's inverted for some reason
+
+  switch (rotary_state) {
+    case _S_VOLUME:
+      tap_code_delay(clockwise ? KC_KB_VOLUME_UP : KC_KB_VOLUME_DOWN, 10);
+      return false;
+    case _S_BRIGHTNESS:
+      tap_code_delay(clockwise ? KC_BRIGHTNESS_UP : KC_BRIGHTNESS_DOWN, 10);
+      return false;
+    default:
+      return false;
+  }
+}
 
 const uint32_t FRAME_DATA[][128] = {
   {
