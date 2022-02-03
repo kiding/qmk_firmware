@@ -17,12 +17,36 @@
 #include "fruitbar.h"
 
 _S_ROTARY rotary_state = _S_VOLUME;
+uint16_t num_timer = 0;
+uint16_t fn_timer = 0;
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   switch (keycode) {
     case _KC_ROTARY:
       if (record->event.pressed) {
         rotary_state = rotary_state == _S_VOLUME ? _S_BRIGHTNESS : _S_VOLUME;
+      }
+      return false;
+    case _KC_NUM:
+      if (record->event.pressed) {
+        layer_on(_L_NUM);
+      } else {
+        if (timer_elapsed(num_timer) > 250) {
+          layer_off(_L_NUM);
+          layer_off(_L_FN);
+        }
+        num_timer = timer_read();
+      }
+      return false;
+    case _KC_FN:
+      if (record->event.pressed) {
+        layer_on(_L_FN);
+      } else {
+        if (timer_elapsed(fn_timer) > 250) {
+          layer_off(_L_FN);
+          layer_off(_L_NUM);
+        }
+        fn_timer = timer_read();
       }
       return false;
     default:
