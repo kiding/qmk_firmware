@@ -47,3 +47,7 @@ typedef enum {
   _S_VOLUME,
   _S_BRIGHTNESS
 } _S_ROTARY;
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record);
+bool encoder_update_user(uint8_t index, bool clockwise);
+void _oled_process_frames(void);
