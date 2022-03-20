@@ -20,31 +20,50 @@ _S_ROTARY rotary_state = _S_VOLUME;
 uint32_t num_timer = 0;
 uint32_t fn_timer = 0;
 
+void _alt_start(uint8_t layer, _S_ROTARY new_state) {
+  layer_on(layer);
+
+  rotary_state = new_state;
+}
+
+void _alt_end(void) {
+  layer_off(_L_NUM);
+  layer_off(_L_FN);
+
+  rotary_state = _S_VOLUME;
+}
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+  layer_state_t highest_layer = get_highest_layer(layer_state);
+
   switch (keycode) {
     case _KC_ROTARY:
       if (record->event.pressed) {
-        rotary_state = rotary_state == _S_VOLUME ? _S_BRIGHTNESS : _S_VOLUME;
+        switch (rotary_state) {
+          case _S_VOLUME:
+            _alt_start(highest_layer, _S_BRIGHTNESS);
+            break;
+          case _S_BRIGHTNESS:
+          default:
+            _alt_end();
+        }
       }
       return false;
     case _KC_NUM:
       if (record->event.pressed) {
-        layer_on(_L_NUM);
+        _alt_start(_L_NUM, rotary_state);
       } else {
         if (timer_elapsed32(num_timer) > 250) {
-          layer_off(_L_NUM);
-          layer_off(_L_FN);
+          _alt_end();
         }
         num_timer = timer_read32();
       }
       return false;
     case _KC_FN:
       if (record->event.pressed) {
-        layer_on(_L_FN);
+        _alt_start(_L_FN, rotary_state);
       } else {
         if (timer_elapsed32(fn_timer) > 250) {
-          layer_off(_L_FN);
-          layer_off(_L_NUM);
+          _alt_end();
         }
         fn_timer = timer_read32();
       }
@@ -55,6 +74,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
+  layer_state_t highest_layer = get_highest_layer(layer_state);
   clockwise = !clockwise; // It's inverted for some reason
 
   switch (rotary_state) {
@@ -62,15 +82,17 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
       tap_code_delay(clockwise ? KC_KB_VOLUME_UP : KC_KB_VOLUME_DOWN, 10);
       return false;
     case _S_BRIGHTNESS:
-      tap_code_delay(clockwise ? KC_BRIGHTNESS_UP : KC_BRIGHTNESS_DOWN, 10);
-      return false;
     default:
+      tap_code_delay(clockwise ? KC_BRIGHTNESS_UP : KC_BRIGHTNESS_DOWN, 10);
+      _alt_start(highest_layer, rotary_state);
       return false;
   }
 }
 
 bool oled_task_user(void) {
-  switch (get_highest_layer(layer_state)) {
+  layer_state_t highest_layer = get_highest_layer(layer_state);
+
+  switch (highest_layer) {
     case _L_BASE:
       oled_write_P(PSTR("           {}|B\n qwertyuiop[]\\B\n"), false);
       break;
