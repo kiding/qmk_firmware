@@ -114,6 +114,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
+const uint32_t ALT_TIMEOUT = 15000;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
@@ -179,6 +180,10 @@ bool oled_task_user(void) {
     default:
       oled_write_P(PSTR("X"), false);
   }
+
+  const uint32_t alt_diff = timer_elapsed32(alt_timer);
+  if (ALT_TIMEOUT < alt_diff) {
+    _alt_end();
   }
 
   oled_timer = timer_read32();
