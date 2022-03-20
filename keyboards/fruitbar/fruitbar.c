@@ -15,6 +15,7 @@
   */
 
 #include "fruitbar.h"
+#include "keymap.h"  // to get keymaps[][][]
 
 _S_ROTARY rotary_state = _S_VOLUME;
 uint32_t num_timer = 0;
@@ -32,8 +33,27 @@ void _alt_end(void) {
 
   rotary_state = _S_VOLUME;
 }
+
+bool _is_keycode_alt(uint16_t keycode) {
+  for(int i=_L_NUM; i<=_L_FN; i++) {
+    for(int j=0; j<MATRIX_ROWS; j++) {
+      for(int k=0; k<MATRIX_COLS; k++) {
+        if (keycode == pgm_read_word(&keymaps[i][j][k])) {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
+
+  if (_is_keycode_alt(keycode)) {
+    _alt_start(highest_layer, rotary_state);
+  }
 
   switch (keycode) {
     case _KC_ROTARY:
