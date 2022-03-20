@@ -53,3 +53,6 @@
 /* RGB Definitions */
 #define RGB_DI_PIN C7
 #define RGBLED_NUM 8
+
+/* OLED Configs */
+#define OLED_BRIGHTNESS 0
