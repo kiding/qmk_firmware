@@ -17,3 +17,4 @@ EXTRAKEY_ENABLE = yes       # Audio control and System control
 NKRO_ENABLE = yes            # USB Nkey Rollover
 ENCODER_ENABLE = yes		# Encoder Enable
 OLED_ENABLE = yes	# OLED Screen Enable
+WPM_ENABLE = yes  # WPM Calculation

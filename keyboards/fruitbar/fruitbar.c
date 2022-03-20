@@ -101,27 +101,61 @@ bool oled_task_user(void) {
 
   switch (highest_layer) {
     case _L_BASE:
-      oled_write_P(PSTR("           {}|B\n qwertyuiop[]\\B\n"), false);
+      oled_write_P(PSTR("           {}|B"), false);
       break;
     case _L_NUM:
-      oled_write_P(PSTR("~!@#$%^&*()_+ B\n`1234567890-= B\n"), false);
+      oled_write_P(PSTR("~!@#$%^&*()_+ B"), false);
       break;
     case _L_FN:
-      oled_write_P(PSTR("\nE123456789012 D\n"), false);
+      oled_write_P(PSTR("               "), false);
       break;
     default:
-      oled_write_P(PSTR("HUH\n"), false);
+      oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
   }
+
+  oled_advance_char();
+  oled_write_P(PSTR("WPM"), false);
+  oled_advance_char();
 
   switch (rotary_state) {
     case _S_VOLUME:
-      oled_write_P(PSTR("               Volume\n"), false);
+      oled_write_P(PSTR("\x0E"), false);
       break;
     case _S_BRIGHTNESS:
-      oled_write_P(PSTR("           Brightness\n"), false);
+      oled_write_P(PSTR(" "), false);
       break;
     default:
-      oled_write_P(PSTR("HUH\n"), false);
+      oled_write_P(PSTR("X"), false);
+  }
+
+  switch (highest_layer) {
+    case _L_BASE:
+      oled_write_P(PSTR("\x1Aqwertyuiop[]\\B"), false);
+      break;
+    case _L_NUM:
+      oled_write_P(PSTR("`1234567890-= B"), false);
+      break;
+    case _L_FN:
+      oled_write_P(PSTR("E123456789012 D"), false);
+      break;
+    default:
+      oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
+  }
+
+  oled_advance_char();
+  oled_write(get_u8_str(get_current_wpm(), ' '), false);
+  oled_advance_char();
+
+  switch (rotary_state) {
+    case _S_VOLUME:
+      oled_write_P(PSTR(" "), false);
+      break;
+    case _S_BRIGHTNESS:
+      oled_write_P(PSTR("\x0F"), false);
+      break;
+    default:
+      oled_write_P(PSTR("X"), false);
+  }
   }
 
   oled_timer = timer_read32();
