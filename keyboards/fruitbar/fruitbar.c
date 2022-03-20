@@ -89,8 +89,15 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
   }
 }
 
+uint32_t oled_timer = 0;
+const uint32_t OLED_FRAME_RATE = 50;
+
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
+
+  if (timer_elapsed32(oled_timer) <= OLED_FRAME_RATE) {
+    return false;
+  }
 
   switch (highest_layer) {
     case _L_BASE:
@@ -116,6 +123,8 @@ bool oled_task_user(void) {
     default:
       oled_write_P(PSTR("HUH\n"), false);
   }
+
+  oled_timer = timer_read32();
 
   return false;
 }
