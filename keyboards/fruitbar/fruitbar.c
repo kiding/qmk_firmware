@@ -17,6 +17,7 @@
 #include "fruitbar.h"
 #include "keymap.h"  // to get keymaps[][][]
 
+uint32_t alt_timer = 0;
 _S_ROTARY rotary_state = _S_VOLUME;
 uint32_t num_timer = 0;
 uint32_t fn_timer = 0;
@@ -24,6 +25,7 @@ uint32_t fn_timer = 0;
 void _alt_start(uint8_t layer, _S_ROTARY new_state) {
   layer_on(layer);
 
+  alt_timer = timer_read32();
   rotary_state = new_state;
 }
 
@@ -31,6 +33,7 @@ void _alt_end(void) {
   layer_off(_L_NUM);
   layer_off(_L_FN);
 
+  alt_timer = 0;
   rotary_state = _S_VOLUME;
 }
 
