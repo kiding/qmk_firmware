@@ -186,6 +186,16 @@ bool oled_task_user(void) {
     _alt_end();
   }
 
+  char alt_countdown[22] = {0};
+  if (alt_timer) {
+    const size_t max = sizeof(alt_countdown) - 1;
+    const size_t len = max - alt_diff * max / ALT_TIMEOUT;
+    for (size_t i=0; i<max; i++) {
+      alt_countdown[i] = i < len ? '\x07' : ' ';
+    }
+  }
+  oled_write_ln(alt_countdown, false);
+
   oled_timer = timer_read32();
 
   return false;
