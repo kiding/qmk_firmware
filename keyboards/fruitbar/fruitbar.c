@@ -54,7 +54,7 @@ bool _is_keycode_alt(uint16_t keycode) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
 
-  if (_is_keycode_alt(keycode)) {
+  if (highest_layer != _L_BASE && _is_keycode_alt(keycode)) {
     _alt_start(highest_layer, rotary_state);
   }
 
