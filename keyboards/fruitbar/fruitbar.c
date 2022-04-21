@@ -19,8 +19,7 @@
 
 uint32_t alt_timer = 0;
 _S_ROTARY rotary_state = _S_VOLUME;
-uint32_t num_timer = 0;
-uint32_t fn_timer = 0;
+uint32_t numfn_timer = 0;
 
 void _alt_start(uint8_t layer, _S_ROTARY new_state) {
   layer_on(layer);
@@ -71,24 +70,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       }
       return false;
-    case _KC_NUM:
+    case _KC_NUMFN:
       if (record->event.pressed) {
         _alt_start(_L_NUM, rotary_state);
       } else {
-        if (timer_elapsed32(num_timer) > 250) {
+        if (timer_elapsed32(numfn_timer) <= 250) {
+          _alt_start(_L_FN, rotary_state);
+        } else {
           _alt_end();
         }
-        num_timer = timer_read32();
-      }
-      return false;
-    case _KC_FN:
-      if (record->event.pressed) {
-        _alt_start(_L_FN, rotary_state);
-      } else {
-        if (timer_elapsed32(fn_timer) > 250) {
-          _alt_end();
-        }
-        fn_timer = timer_read32();
+        numfn_timer = timer_read32();
       }
       return false;
     default:
@@ -114,7 +105,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
-const uint32_t ALT_TIMEOUT = 15000;
+const uint32_t ALT_TIMEOUT = 7000;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
