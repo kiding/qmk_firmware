@@ -18,7 +18,6 @@
 #include "keymap.h"  // to get keymaps[][][]
 
 uint32_t alt_timer = 0;
-uint32_t num_timer = 0;
 _S_ROTARY rotary_state = _S_SCROLL;
 
 void _alt_start(uint8_t layer, _S_ROTARY new_state) {
@@ -72,18 +71,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
         }
       }
       return false;
-    case _KC_NUMFN:
+    case KC_RSFT:
       if (record->event.pressed) {
         _alt_start(_L_NUM, rotary_state);
-      } else {
-        if (timer_elapsed32(num_timer) <= 150) {
-          _alt_start(_L_NUM, rotary_state);
-        } else {
-          _alt_end();
-        }
-        num_timer = timer_read32();
       }
-      return false;
+      return true;
     default:
       return true; // Process all other keycodes normally
   }
@@ -111,7 +103,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
-const uint32_t ALT_TIMEOUT = 1000;
+const uint32_t ALT_TIMEOUT = 800;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);

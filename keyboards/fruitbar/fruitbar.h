@@ -37,8 +37,7 @@ enum layers {
 }
 
 enum keycodes {
-  _KC_ROTARY = SAFE_RANGE,
-  _KC_NUMFN
+  _KC_ROTARY = SAFE_RANGE
 };
 
 typedef enum {
