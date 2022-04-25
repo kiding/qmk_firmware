@@ -18,8 +18,8 @@
 #include "keymap.h"  // to get keymaps[][][]
 
 uint32_t alt_timer = 0;
-_S_ROTARY rotary_state = _S_VOLUME;
 uint32_t numfn_timer = 0;
+_S_ROTARY rotary_state = _S_SCROLL;
 
 void _alt_start(uint8_t layer, _S_ROTARY new_state) {
   layer_on(layer);
@@ -33,7 +33,7 @@ void _alt_end(void) {
   layer_off(_L_FN);
 
   alt_timer = 0;
-  rotary_state = _S_VOLUME;
+  rotary_state = _S_SCROLL;
 }
 
 bool _is_keycode_alt(uint16_t keycode) {
@@ -61,6 +61,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case _KC_ROTARY:
       if (record->event.pressed) {
         switch (rotary_state) {
+          case _S_SCROLL:
+            _alt_start(highest_layer, _S_VOLUME);
+            break;
           case _S_VOLUME:
             _alt_start(highest_layer, _S_BRIGHTNESS);
             break;
@@ -92,8 +95,12 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
   clockwise = !clockwise; // It's inverted for some reason
 
   switch (rotary_state) {
+    case _S_SCROLL:
+      tap_code_delay(clockwise ? KC_PAGE_DOWN : KC_PAGE_UP, 10);
+      return false;
     case _S_VOLUME:
       tap_code_delay(clockwise ? KC_KB_VOLUME_UP : KC_KB_VOLUME_DOWN, 10);
+      _alt_start(highest_layer, rotary_state);
       return false;
     case _S_BRIGHTNESS:
     default:
@@ -133,8 +140,11 @@ bool oled_task_user(void) {
   oled_advance_char();
 
   switch (rotary_state) {
+    case _S_SCROLL:
+      oled_write_P(PSTR("\x12"), false);
+      break;
     case _S_VOLUME:
-      oled_write_P(PSTR("\x0E"), false);
+      oled_write_P(PSTR(" "), false);
       break;
     case _S_BRIGHTNESS:
       oled_write_P(PSTR(" "), false);
@@ -162,8 +172,11 @@ bool oled_task_user(void) {
   oled_advance_char();
 
   switch (rotary_state) {
-    case _S_VOLUME:
+    case _S_SCROLL:
       oled_write_P(PSTR(" "), false);
+      break;
+    case _S_VOLUME:
+      oled_write_P(PSTR("\x0E"), false);
       break;
     case _S_BRIGHTNESS:
       oled_write_P(PSTR("\x0F"), false);
