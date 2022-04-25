@@ -18,7 +18,7 @@
 #include "keymap.h"  // to get keymaps[][][]
 
 uint32_t alt_timer = 0;
-uint32_t numfn_timer = 0;
+uint32_t num_timer = 0;
 _S_ROTARY rotary_state = _S_SCROLL;
 
 void _alt_start(uint8_t layer, _S_ROTARY new_state) {
@@ -30,14 +30,13 @@ void _alt_start(uint8_t layer, _S_ROTARY new_state) {
 
 void _alt_end(void) {
   layer_off(_L_NUM);
-  layer_off(_L_FN);
 
   alt_timer = 0;
   rotary_state = _S_SCROLL;
 }
 
 bool _is_keycode_alt(uint16_t keycode) {
-  for(int i=_L_NUM; i<=_L_FN; i++) {
+  for(int i=_L_NUM; i<=_L_NUM; i++) {
     for(int j=0; j<MATRIX_ROWS; j++) {
       for(int k=0; k<MATRIX_COLS; k++) {
         if (keycode == pgm_read_word(&keymaps[i][j][k])) {
@@ -77,12 +76,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         _alt_start(_L_NUM, rotary_state);
       } else {
-        if (timer_elapsed32(numfn_timer) <= 250) {
-          _alt_start(_L_FN, rotary_state);
+        if (timer_elapsed32(num_timer) <= 150) {
+          _alt_start(_L_NUM, rotary_state);
         } else {
           _alt_end();
         }
-        numfn_timer = timer_read32();
+        num_timer = timer_read32();
       }
       return false;
     default:
@@ -112,7 +111,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
-const uint32_t ALT_TIMEOUT = 7000;
+const uint32_t ALT_TIMEOUT = 1000;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
@@ -127,9 +126,6 @@ bool oled_task_user(void) {
       break;
     case _L_NUM:
       oled_write_P(PSTR("~!@#$%^&*()_+ B"), false);
-      break;
-    case _L_FN:
-      oled_write_P(PSTR("               "), false);
       break;
     default:
       oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
@@ -160,8 +156,6 @@ bool oled_task_user(void) {
     case _L_NUM:
       oled_write_P(PSTR("`1234567890-= B"), false);
       break;
-    case _L_FN:
-      oled_write_P(PSTR("E123456789012 D"), false);
       break;
     default:
       oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
