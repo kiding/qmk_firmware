@@ -17,24 +17,10 @@
 #include "fruitbar.h"
 #include "keymap.h"  // to get keymaps[][][]
 
-uint32_t alt_timer = 0;
+uint32_t num_timer = 0;
 _S_ROTARY rotary_state = _S_SCROLL;
 
-void _alt_start(uint8_t layer, _S_ROTARY new_state) {
-  layer_on(layer);
-
-  alt_timer = timer_read32();
-  rotary_state = new_state;
-}
-
-void _alt_end(void) {
-  layer_off(_L_NUM);
-
-  alt_timer = 0;
-  rotary_state = _S_SCROLL;
-}
-
-bool _is_keycode_alt(uint16_t keycode) {
+bool _is_keycode_num(uint16_t keycode) {
   for(int i=_L_NUM; i<=_L_NUM; i++) {
     for(int j=0; j<MATRIX_ROWS; j++) {
       for(int k=0; k<MATRIX_COLS; k++) {
@@ -49,61 +35,61 @@ bool _is_keycode_alt(uint16_t keycode) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  layer_state_t highest_layer = get_highest_layer(layer_state);
-
-  if (highest_layer != _L_BASE && _is_keycode_alt(keycode)) {
-    _alt_start(highest_layer, rotary_state);
+  if (num_timer > 0 && _is_keycode_num(keycode)) {
+    num_timer = timer_read32();
   }
 
   switch (keycode) {
+    case KC_RSFT:
+      if (record->event.pressed) {
+        layer_on(_L_NUM);
+      } else {
+        num_timer = timer_read32();
+      }
+      return true;
     case _KC_ROTARY:
       if (record->event.pressed) {
         switch (rotary_state) {
           case _S_SCROLL:
-            _alt_start(highest_layer, _S_VOLUME);
+            rotary_state = _S_VOLUME;
             break;
           case _S_VOLUME:
-            _alt_start(highest_layer, _S_BRIGHTNESS);
+            rotary_state = _S_BRIGHTNESS;
             break;
           case _S_BRIGHTNESS:
           default:
-            _alt_end();
+            rotary_state = _S_SCROLL;
         }
       }
       return false;
-    case KC_RSFT:
-      if (record->event.pressed) {
-        _alt_start(_L_NUM, rotary_state);
-      }
-      return true;
     default:
       return true; // Process all other keycodes normally
   }
 }
 
 bool encoder_update_user(uint8_t index, bool clockwise) {
-  layer_state_t highest_layer = get_highest_layer(layer_state);
   clockwise = !clockwise; // It's inverted for some reason
 
   switch (rotary_state) {
     case _S_SCROLL:
       tap_code_delay(clockwise ? KC_PAGE_DOWN : KC_PAGE_UP, 10);
-      return false;
+      break;
     case _S_VOLUME:
       tap_code_delay(clockwise ? KC_KB_VOLUME_UP : KC_KB_VOLUME_DOWN, 10);
-      _alt_start(highest_layer, rotary_state);
-      return false;
+      break;
     case _S_BRIGHTNESS:
     default:
       tap_code_delay(clockwise ? KC_BRIGHTNESS_UP : KC_BRIGHTNESS_DOWN, 10);
-      _alt_start(highest_layer, rotary_state);
-      return false;
+      break;
   }
+
+  rotary_timer = timer_read32();
+  return false;
 }
 
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
-const uint32_t ALT_TIMEOUT = 400;
+const uint32_t NUM_TIMEOUT = 400;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
@@ -170,20 +156,20 @@ bool oled_task_user(void) {
       oled_write_P(PSTR("XXXXX"), false);
   }
 
-  const uint32_t alt_diff = timer_elapsed32(alt_timer);
-  if (ALT_TIMEOUT < alt_diff) {
-    _alt_end();
+  const uint32_t num_diff = timer_elapsed32(num_timer);
+  if (num_timer > 0 && NUM_TIMEOUT < num_diff) {
+    layer_off(_L_NUM);
+    num_timer = 0;
   }
-
-  char alt_countdown[22] = {0};
-  if (alt_timer) {
-    const size_t max = sizeof(alt_countdown) - 1;
-    const size_t len = max - alt_diff * max / ALT_TIMEOUT;
+  char num_countdown[16] = "              ";
+  if (num_timer > 0) {
+    const size_t max = sizeof(num_countdown) - 1;
+    const size_t len = max - num_diff * max / NUM_TIMEOUT;
     for (size_t i=0; i<max; i++) {
-      alt_countdown[i] = i < len ? '\x07' : ' ';
+      num_countdown[i] = i < len ? '\x07' : ' ';
     }
   }
-  oled_write_ln(alt_countdown, false);
+  oled_write(num_countdown, false);
 
   oled_timer = timer_read32();
 
