@@ -114,10 +114,10 @@ bool oled_task_user(void) {
 
   switch (highest_layer) {
     case _L_BASE:
-      oled_write_P(PSTR("           {}|B"), false);
+      oled_write_P(PSTR("           {}| "), false);
       break;
     case _L_NUM:
-      oled_write_P(PSTR("~!@#$%^&*()_+ B"), false);
+      oled_write_P(PSTR("~!@#$%^&*()_+ D"), false);
       break;
     default:
       oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
@@ -138,7 +138,7 @@ bool oled_task_user(void) {
       oled_write_P(PSTR(" "), false);
       break;
     default:
-      oled_write_P(PSTR("X"), false);
+      oled_write_P(PSTR("XXXXX"), false);
   }
 
   switch (highest_layer) {
@@ -146,8 +146,7 @@ bool oled_task_user(void) {
       oled_write_P(PSTR("\x1Aqwertyuiop[]\\B"), false);
       break;
     case _L_NUM:
-      oled_write_P(PSTR("`1234567890-= B"), false);
-      break;
+      oled_write_P(PSTR("`1234567890-= D"), false);
       break;
     default:
       oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
@@ -168,7 +167,7 @@ bool oled_task_user(void) {
       oled_write_P(PSTR("\x0F"), false);
       break;
     default:
-      oled_write_P(PSTR("X"), false);
+      oled_write_P(PSTR("XXXXX"), false);
   }
 
   const uint32_t alt_diff = timer_elapsed32(alt_timer);
