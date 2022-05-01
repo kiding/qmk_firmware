@@ -45,6 +45,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       if (record->event.pressed) {
         layer_on(_L_NUM);
       } else {
+        layer_off(_L_NUM);
+      }
+      return true;
+    case _KC_NUM:
+      if (record->event.pressed) {
+        layer_on(_L_NUM);
+      } else {
         num_timer = timer_read32();
       }
       return true;
