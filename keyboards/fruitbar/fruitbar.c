@@ -18,7 +18,7 @@
 #include "keymap.h"  // to get keymaps[][][]
 
 uint32_t num_timer = 0;
-_S_ROTARY rotary_state = _S_SCROLL;
+_S_ROTARY rotary_state = _S_VOLUME;
 uint32_t rotary_timer = 0;
 
 bool _is_keycode_num(uint16_t keycode) {
@@ -58,17 +58,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case _KC_ROTARY:
       if (record->event.pressed) {
         switch (rotary_state) {
-          case _S_SCROLL:
-            rotary_state = _S_VOLUME;
-            rotary_timer = timer_read32();
-            break;
           case _S_VOLUME:
             rotary_state = _S_BRIGHTNESS;
             rotary_timer = timer_read32();
             break;
           case _S_BRIGHTNESS:
           default:
-            rotary_state = _S_SCROLL;
+            rotary_state = _S_VOLUME;
             rotary_timer = 0;
         }
       }
@@ -82,9 +78,6 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
   clockwise = !clockwise; // It's inverted for some reason
 
   switch (rotary_state) {
-    case _S_SCROLL:
-      tap_code_delay(clockwise ? KC_PAGE_DOWN : KC_PAGE_UP, 10);
-      return false;
     case _S_VOLUME:
       tap_code_delay(clockwise ? KC_KB_VOLUME_UP : KC_KB_VOLUME_DOWN, 10);
       break;
@@ -121,20 +114,17 @@ bool oled_task_user(void) {
       oled_write_P(PSTR("XXXXXXXXXXXXXXX"), false);
   }
 
-  oled_advance_char();
+  oled_write_P(PSTR("     "), false);
 
   switch (rotary_state) {
-    case _S_SCROLL:
-      oled_write_P(PSTR("\x80    "), false);
-      break;
     case _S_VOLUME:
-      oled_write_P(PSTR("  \x81  "), false);
+      oled_write_P(PSTR("\x0E"), false);
       break;
     case _S_BRIGHTNESS:
-      oled_write_P(PSTR("    \x82"), false);
+      oled_write_P(PSTR("\x0F"), false);
       break;
     default:
-      oled_write_P(PSTR("XXXXX"), false);
+      oled_write_P(PSTR("X"), false);
   }
 
   switch (highest_layer) {
@@ -149,27 +139,14 @@ bool oled_task_user(void) {
   }
 
   oled_advance_char();
-
-  switch (rotary_state) {
-    case _S_SCROLL:
-      oled_write_P(PSTR("\xA0    "), false);
-      break;
-    case _S_VOLUME:
-      oled_write_P(PSTR("  \xA1  "), false);
-      break;
-    case _S_BRIGHTNESS:
-      oled_write_P(PSTR("    \xA2"), false);
-      break;
-    default:
-      oled_write_P(PSTR("XXXXX"), false);
-  }
+  oled_write(get_u16_str(get_current_wpm(), ' '), false);
 
   const uint32_t num_diff = timer_elapsed32(num_timer);
   if (num_timer > 0 && NUM_TIMEOUT < num_diff) {
     layer_off(_L_NUM);
     num_timer = 0;
   }
-  char num_countdown[16] = "              ";
+  char num_countdown[15] = "              ";
   if (num_timer > 0) {
     const size_t max = sizeof(num_countdown) - 1;
     const size_t len = max - num_diff * max / NUM_TIMEOUT;
@@ -183,7 +160,7 @@ bool oled_task_user(void) {
 
   const uint32_t rotary_diff = timer_elapsed32(rotary_timer);
   if (rotary_timer > 0 && ROTARY_TIMEOUT < rotary_diff) {
-    rotary_state = _S_SCROLL;
+    rotary_state = _S_VOLUME;
     rotary_timer = 0;
   }
   char rotary_countdown[6] = "     ";

@@ -42,7 +42,6 @@ enum keycodes {
 };
 
 typedef enum {
-  _S_SCROLL,
   _S_VOLUME,
   _S_BRIGHTNESS
 } _S_ROTARY;
