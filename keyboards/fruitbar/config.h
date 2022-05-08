@@ -56,4 +56,3 @@
 
 /* OLED Configs */
 #define OLED_BRIGHTNESS 0
-#define OLED_FONT_H "keyboards/fruitbar/glcdfont.c"
