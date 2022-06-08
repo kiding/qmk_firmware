@@ -20,7 +20,8 @@
 
 enum layers {
   _L_BASE,
-  _L_NUM
+  _L_NUM_BSPC,
+  _L_NUM_DEL,
 };
 
 #define LAYOUT( K000, K001, K101, K002, K003, K004, K005, K105, K006, K106, K007, K008, K108, K009, K010, K110, \

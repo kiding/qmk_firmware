@@ -17,12 +17,12 @@
 #include "fruitbar.h"
 #include "keymap.h"  // to get keymaps[][][]
 
-uint32_t num_timer = 0;
+uint32_t num_bspc_timer = 0;
 _S_ROTARY rotary_state = _S_VOLUME;
 uint32_t rotary_timer = 0;
 
-bool _is_keycode_num(uint16_t keycode) {
-  for(int i=_L_NUM; i<=_L_NUM; i++) {
+bool _is_keycode_num_bspc(uint16_t keycode) {
+  for(int i=_L_NUM_BSPC; i<=_L_NUM_BSPC; i++) {
     for(int j=0; j<MATRIX_ROWS; j++) {
       for(int k=0; k<MATRIX_COLS; k++) {
         if (keycode == pgm_read_word(&keymaps[i][j][k])) {
@@ -36,23 +36,23 @@ bool _is_keycode_num(uint16_t keycode) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-  if (num_timer > 0 && _is_keycode_num(keycode)) {
-    num_timer = timer_read32();
+  if (num_bspc_timer > 0 && _is_keycode_num_bspc(keycode)) {
+    num_bspc_timer = timer_read32();
   }
 
   switch (keycode) {
-    case KC_RSFT:
-      if (record->event.pressed) {
-        layer_on(_L_NUM);
-      } else {
-        layer_off(_L_NUM);
-      }
-      return true;
     case _KC_NUM:
       if (record->event.pressed) {
-        layer_on(_L_NUM);
+        layer_on(_L_NUM_BSPC);
       } else {
-        num_timer = timer_read32();
+        num_bspc_timer = timer_read32();
+      }
+      return true;
+    case KC_RSFT:
+      if (record->event.pressed) {
+        layer_on(_L_NUM_DEL);
+      } else {
+        layer_off(_L_NUM_DEL);
       }
       return true;
     case _KC_ROTARY:
@@ -94,7 +94,7 @@ bool encoder_update_user(uint8_t index, bool clockwise) {
 uint32_t oled_timer = 0;
 const uint32_t OLED_FRAME_RATE = 50;
 const uint32_t ROTARY_TIMEOUT = 5000;
-const uint32_t NUM_TIMEOUT = 400;
+const uint32_t NUM_BSPC_TIMEOUT = 250;
 
 bool oled_task_user(void) {
   layer_state_t highest_layer = get_highest_layer(layer_state);
@@ -107,7 +107,10 @@ bool oled_task_user(void) {
     case _L_BASE:
       oled_write_P(PSTR("           {}| "), false);
       break;
-    case _L_NUM:
+    case _L_NUM_BSPC:
+      oled_write_P(PSTR("~!@#$%^&*()_+ B"), false);
+      break;
+    case _L_NUM_DEL:
       oled_write_P(PSTR("~!@#$%^&*()_+ D"), false);
       break;
     default:
@@ -131,7 +134,10 @@ bool oled_task_user(void) {
     case _L_BASE:
       oled_write_P(PSTR("\x1Aqwertyuiop[]\\B"), false);
       break;
-    case _L_NUM:
+    case _L_NUM_BSPC:
+      oled_write_P(PSTR("`1234567890-= B"), false);
+      break;
+    case _L_NUM_DEL:
       oled_write_P(PSTR("`1234567890-= D"), false);
       break;
     default:
@@ -141,20 +147,20 @@ bool oled_task_user(void) {
   oled_advance_char();
   oled_write(get_u16_str(get_current_wpm(), ' '), false);
 
-  const uint32_t num_diff = timer_elapsed32(num_timer);
-  if (num_timer > 0 && NUM_TIMEOUT < num_diff) {
-    layer_off(_L_NUM);
-    num_timer = 0;
+  const uint32_t num_bspc_diff = timer_elapsed32(num_bspc_timer);
+  if (num_bspc_timer > 0 && NUM_BSPC_TIMEOUT < num_bspc_diff) {
+    layer_off(_L_NUM_BSPC);
+    num_bspc_timer = 0;
   }
-  char num_countdown[15] = "              ";
-  if (num_timer > 0) {
-    const size_t max = sizeof(num_countdown) - 1;
-    const size_t len = max - num_diff * max / NUM_TIMEOUT;
+  char num_bspc_countdown[15] = "              ";
+  if (num_bspc_timer > 0) {
+    const size_t max = sizeof(num_bspc_countdown) - 1;
+    const size_t len = max - num_bspc_diff * max / NUM_BSPC_TIMEOUT;
     for (size_t i=0; i<max; i++) {
-      num_countdown[i] = i < len ? '\x07' : ' ';
+      num_bspc_countdown[i] = i < len ? '\x07' : ' ';
     }
   }
-  oled_write(num_countdown, false);
+  oled_write(num_bspc_countdown, false);
   oled_advance_char();
   oled_advance_char();
 
