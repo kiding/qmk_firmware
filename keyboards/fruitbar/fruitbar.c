@@ -44,6 +44,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case _KC_NUM:
       if (record->event.pressed) {
         layer_on(_L_NUM_BSPC);
+        num_bspc_timer = 0;
       } else {
         num_bspc_timer = timer_read32();
       }
